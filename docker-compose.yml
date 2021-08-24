@@ -1,0 +1,75 @@
+version: "3.8"
+
+networks: 
+  frontend:
+    driver: ${NETWORKS_DRIVER}
+  backend:
+    driver: ${NETWORKS_DRIVER}
+
+volumes: 
+  mariadb:
+    driver: ${VOLUMES_DRIVER}
+  phpmyadmin:
+    driver: ${VOLUMES_DRIVER}
+
+services:
+  nest_api:
+    build:
+      context: ./nest-api
+      target: development
+    volumes:
+      - ./nest-api:/var/www/app
+      - /var/www/app/node_modules
+    extra_hosts: 
+      - "dockerhost:${DOCKER_HOST_IP}"
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+      - 9292:9292
+    command: npm run start:dev
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - mariadb
+
+  mariadb:
+    build:
+      context: ./mariadb
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+        - MARIADB_VERSION=${MARIADB_VERSION}
+    volumes:
+      - ${DATA_PATH_HOST}/mariadb:/var/lib/mysql
+    ports:
+      - "${MARIDB_PORT}:3306"
+    environment:
+      - MYSQL_DATABASE=${MARIADB_DATABASE}
+      - MYSQL_USER=${MARIADB_USER}
+      - MYSQL_PASSWORD=${MARIADB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+    networks:
+      - backend
+
+## phpmyadmin
+  phpmyadmin:
+    build: 
+      context: ./phpmyadmin
+    environment: 
+      - PMA_ARBITRARY=1
+      - MYSQL_USER=${PMA_USER}
+      - MYSQL_PASSWORD=${PMA_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${PMA_ROOT_PASSWORD}
+      - MAX_EXECUTION_TIME=${PMA_MAX_EXECUTION_TIME}
+      - MEMORY_LIMIT=${PMA_MEMORY_LIMIT}
+      - UPLOAD_LIMIT=${PMA_UPLOAD_LIMIT}
+    ports: 
+      - "${PMA_PORT}:80"
+    depends_on: 
+      - mariadb
+    networks: 
+      - frontend
+      - backend
+
+
