@@ -15,11 +15,14 @@ volumes:
 services:
   nest_api:
     build:
-      context: ./nest-api
+      context: ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}
       target: development
+      args: 
+        - API_CODE_DIR_NAME=${API_CODE_DIR_NAME}
+        - APP_CODE_PATH_CONTAINER=${APP_CODE_PATH_CONTAINER}
     volumes:
-      - ./nest-api:/var/www/app
-      - /var/www/app/node_modules
+      - ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}:${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}
+      - ${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}/node_modules
     extra_hosts: 
       - "dockerhost:${DOCKER_HOST_IP}"
     ports:
