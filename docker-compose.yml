@@ -1,12 +1,12 @@
 version: "3.8"
 
-networks: 
+networks:
   frontend:
     driver: ${NETWORKS_DRIVER}
   backend:
     driver: ${NETWORKS_DRIVER}
 
-volumes: 
+volumes:
   mariadb:
     driver: ${VOLUMES_DRIVER}
   phpmyadmin:
@@ -17,13 +17,13 @@ services:
     build:
       context: ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}
       target: development
-      args: 
+      args:
         - API_CODE_DIR_NAME=${API_CODE_DIR_NAME}
         - APP_CODE_PATH_CONTAINER=${APP_CODE_PATH_CONTAINER}
     volumes:
       - ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}:${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}
       - ${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}/node_modules
-    extra_hosts: 
+    extra_hosts:
       - "dockerhost:${DOCKER_HOST_IP}"
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
@@ -55,11 +55,11 @@ services:
     networks:
       - backend
 
-## phpmyadmin
+  ## phpmyadmin
   phpmyadmin:
-    build: 
+    build:
       context: ./phpmyadmin
-    environment: 
+    environment:
       - PMA_ARBITRARY=1
       - MYSQL_USER=${PMA_USER}
       - MYSQL_PASSWORD=${PMA_PASSWORD}
@@ -67,12 +67,32 @@ services:
       - MAX_EXECUTION_TIME=${PMA_MAX_EXECUTION_TIME}
       - MEMORY_LIMIT=${PMA_MEMORY_LIMIT}
       - UPLOAD_LIMIT=${PMA_UPLOAD_LIMIT}
-    ports: 
+    ports:
       - "${PMA_PORT}:80"
-    depends_on: 
+    depends_on:
       - mariadb
-    networks: 
+    networks:
       - frontend
       - backend
 
-
+  ## nginx
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+      - ${NGINX_SSL_PATH}:/etc/nginx/ssl
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+    depends_on: 
+      - nest_api
+    networks:
+      - frontend
+      - backend
