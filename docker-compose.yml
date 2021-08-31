@@ -13,22 +13,20 @@ volumes:
     driver: ${VOLUMES_DRIVER}
 
 services:
-  nest_api:
+  nest_workspace:
     build:
-      context: ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}
-      target: development
+      context: ./nest-workspace
       args:
-        - API_CODE_DIR_NAME=${API_CODE_DIR_NAME}
-        - APP_CODE_PATH_CONTAINER=${APP_CODE_PATH_CONTAINER}
+        - UBUNTU_VERSION=${UBUNTU_VERSION}
+        - NODE_VERSION=${NODE_VERSION}
     volumes:
-      - ${APP_CODE_PATH_HOST}/${API_CODE_DIR_NAME}:${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}
-      - ${APP_CODE_PATH_CONTAINER}/${API_CODE_DIR_NAME}/node_modules
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
     extra_hosts:
       - "dockerhost:${DOCKER_HOST_IP}"
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
       - 9292:9292
-    command: npm run start:dev
+    tty: true
     networks:
       - backend
       - frontend
@@ -91,8 +89,8 @@ services:
     ports:
       - "${NGINX_HOST_HTTP_PORT}:80"
       - "${NGINX_HOST_HTTPS_PORT}:443"
-    depends_on: 
-      - nest_api
+    depends_on:
+      - nest_workspace
     networks:
       - frontend
       - backend
