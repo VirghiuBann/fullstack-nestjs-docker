@@ -30,8 +30,6 @@ services:
     networks:
       - backend
       - frontend
-    depends_on:
-      - mariadb
 
   mariadb:
     build:
