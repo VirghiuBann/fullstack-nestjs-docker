@@ -4,9 +4,9 @@ FROM ubuntu:${UBUNTU_VERSION}
 USER root
 
 # Add no root user
-ARG PUID=3000
+ARG PUID=1000
 ENV PUID=${PUID}
-ARG PGID=3000
+ARG PGID=1000
 ENV PGID=${PGID}
 
 RUN apt-get update -yqq && \
