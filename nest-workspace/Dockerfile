@@ -14,7 +14,7 @@ RUN apt-get update -yqq && \
     useradd -l -u ${PUID} -g nestdock -m nestdock && \
     usermod -p "*" nestdock -s /bin/bash && \
     apt-get install -yqq \
-    apt-utils git libzip-dev zip unzip zsh curl wget
+    apt-utils nano git libzip-dev zip unzip zsh curl wget
 
 USER nestdock
 
@@ -33,7 +33,7 @@ RUN mkdir -p $NVM_DIR && \
     echo "" >> ~/.bashrc && \
     echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc &&\
     echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc &&\
-    echo '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"' >> ~/.bashrc
+    echo '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"' >> ~/.bashrc 
 
 # Add NVM binaries to root's .bashrc
 USER root
@@ -50,17 +50,19 @@ RUN find $NVM_DIR -type f -name node -exec ln -s {} /usr/local/bin/node \; && \
     ln -s $NODE_MODS_DIR/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -s $NODE_MODS_DIR/npm/bin/npx-cli.js /usr/local/bin/npx 
 
+USER nestdock
 #install NestJs CLI
 RUN npm i -g @nestjs/cli
 
-USER nestdock
 # Uses "Spaceship" theme with some customization. Uses some bundled plugins and installs some more from github
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
     -t https://github.com/denysdovhan/spaceship-prompt \
     -a 'SPACESHIP_PROMPT_ADD_NEWLINE="false"' \
     -a 'SPACESHIP_PROMPT_SEPARATE_LINE="false"' \
+    -a 'export NVM_DIR="$HOME/.nvm"'\
+    -a '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' \
+    -a '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"' \
     -p git \
-    -p ssh-agent \
     -p https://github.com/zsh-users/zsh-autosuggestions \
     -p https://github.com/zsh-users/zsh-completions
 
